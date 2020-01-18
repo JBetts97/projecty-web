@@ -66,7 +66,6 @@ public class ProjectService {
     void createNewProjectAndSave(Project project, List<String> usernames, List<RedirectMessage> messages) {
         projectRoleService.addCurrentUserToProjectAsAdmin(project);
         projectRoleService.addRolesToProjectByUsernames(project, usernames, messages);
-        projectRepository.save(project);
     }
 
     void changeName(Project existingProject, String newName) {
@@ -75,10 +74,12 @@ public class ProjectService {
     }
 
     void addSummaryToProject(Project project) {
-        Map<TaskStatus, Long> map = new LinkedHashMap<>();
-        map.put(TaskStatus.TO_DO, taskRepository.countByProjectAndStatus(project, TaskStatus.TO_DO));
-        map.put(TaskStatus.IN_PROGRESS, taskRepository.countByProjectAndStatus(project, TaskStatus.IN_PROGRESS));
-        map.put(TaskStatus.DONE, taskRepository.countByProjectAndStatus(project, TaskStatus.DONE));
-        project.setTaskSummary(map);
+        if (project != null) {
+            Map<TaskStatus, Long> map = new LinkedHashMap<>();
+            map.put(TaskStatus.TO_DO, taskRepository.countByProjectAndStatus(project, TaskStatus.TO_DO));
+            map.put(TaskStatus.IN_PROGRESS, taskRepository.countByProjectAndStatus(project, TaskStatus.IN_PROGRESS));
+            map.put(TaskStatus.DONE, taskRepository.countByProjectAndStatus(project, TaskStatus.DONE));
+            project.setTaskSummary(map);
+        }
     }
 }

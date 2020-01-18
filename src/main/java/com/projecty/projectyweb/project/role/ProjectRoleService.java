@@ -2,6 +2,8 @@ package com.projecty.projectyweb.project.role;
 
 import com.projecty.projectyweb.misc.RedirectMessage;
 import com.projecty.projectyweb.misc.RedirectMessageTypes;
+import com.projecty.projectyweb.notification.NotificationService;
+import com.projecty.projectyweb.notification.Notifications;
 import com.projecty.projectyweb.project.Project;
 import com.projecty.projectyweb.project.ProjectRepository;
 import com.projecty.projectyweb.user.User;
@@ -18,19 +20,24 @@ public class ProjectRoleService {
     private final UserService userService;
     private final ProjectRepository projectRepository;
     private final MessageSource messageSource;
+    private final NotificationService notificationService;
 
-    public ProjectRoleService(ProjectRoleRepository projectRoleRepository, UserService userService, ProjectRepository projectRepository, MessageSource messageSource) {
+    public ProjectRoleService(ProjectRoleRepository projectRoleRepository, UserService userService, ProjectRepository projectRepository, MessageSource messageSource, NotificationService notificationService) {
         this.projectRoleRepository = projectRoleRepository;
         this.userService = userService;
         this.projectRepository = projectRepository;
         this.messageSource = messageSource;
+        this.notificationService = notificationService;
     }
 
     public void save(ProjectRole projectRole) {
         projectRoleRepository.save(projectRole);
     }
 
+    //FIXME Error while adding project with admin in same tiem
     public List<ProjectRole> addRolesToProjectByUsernames(Project project, List<String> usernames, List<RedirectMessage> messages) {
+        if (project.getId() == null)
+            project = projectRepository.save(project);
         List<ProjectRole> projectRoles = new ArrayList<>();
         if (usernames != null) {
             Set<User> users = userService.getUserSetByUsernamesWithoutCurrentUser(usernames);
@@ -39,14 +46,16 @@ public class ProjectRoleService {
             ) {
                 ProjectRole projectRole = new ProjectRole(ProjectRoles.USER, user, project);
                 projectRoles.add(projectRole);
-                    RedirectMessage message = new RedirectMessage();
-                    message.setType(RedirectMessageTypes.SUCCESS);
-                    String text = messageSource.getMessage(
-                            "projectRole.add.success",
-                            new Object[]{user.getUsername(), project.getName()},
-                            LocaleContextHolder.getLocale());
-                    message.setText(text);
-                    messages.add(message);
+                RedirectMessage message = new RedirectMessage();
+                message.setType(RedirectMessageTypes.SUCCESS);
+                String text = messageSource.getMessage(
+                        "projectRole.add.success",
+                        new Object[]{user.getUsername(), project.getName()},
+                        LocaleContextHolder.getLocale());
+                notificationService.createNotificationAndSave(
+                        user, Notifications.USER_ADDED_TO_PROJECT, new Long[]{project.getId()});
+                message.setText(text);
+                messages.add(message);
             }
         }
         List<ProjectRole> savedProjectRoles = new ArrayList<>();

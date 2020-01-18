@@ -6,6 +6,8 @@ import com.projecty.projectyweb.user.User;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 
@@ -22,7 +24,6 @@ public class NotificationService {
         this.projectRepository = projectRepository;
     }
 
-    //    TODO Untested
     public Notification createNotificationAndSave(User to, Notifications type, Long[] objectIds) {
         Notification notification = new NotificationBuilder()
                 .setUser(to)
@@ -56,4 +57,22 @@ public class NotificationService {
         return String.valueOf(type).toLowerCase();
     }
 
+    public Optional<Notification> findById(Long id) {
+        return notificationRepository.findById(id);
+    }
+
+    private List<Notification> findAllByUser(User user) {
+        return notificationRepository.findAllByUser(user);
+    }
+
+    public List<Notification> getAllNotificationsForUser(User user) {
+        List<Notification> notifications = findAllByUser(user);
+        notifications.forEach(notification -> notification.setMessage(getNotificationString(notification)));
+        notifications.forEach(notification -> System.out.println(Arrays.toString(notification.getObjectIds())));
+        return notifications;
+    }
+
+    public long getUnreadNotificationCountForSpecifiedUser(User user) {
+        return notificationRepository.countByUserAndSeen(user, false);
+    }
 }

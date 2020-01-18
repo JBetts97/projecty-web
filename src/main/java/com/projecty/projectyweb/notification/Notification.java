@@ -1,11 +1,13 @@
 package com.projecty.projectyweb.notification;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.projecty.projectyweb.user.User;
+import org.hibernate.annotations.CreationTimestamp;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
+import javax.persistence.*;
+import java.sql.Date;
 import java.util.Arrays;
+import java.util.Objects;
 
 @Entity
 public class Notification {
@@ -13,11 +15,21 @@ public class Notification {
     @GeneratedValue
     private Long id;
 
+    @JsonIgnore
+    @ManyToOne
     private User user;
 
     private Notifications type;
 
     private Long[] objectIds;
+
+    @CreationTimestamp
+    private Date date;
+
+    @Transient
+    private String message;
+
+    private boolean seen;
 
     public Long getId() {
         return id;
@@ -51,6 +63,43 @@ public class Notification {
         this.user = user;
     }
 
+    public Date getDate() {
+        return date;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
+    public boolean isSeen() {
+        return seen;
+    }
+
+    public void setSeen(boolean seen) {
+        this.seen = seen;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Notification that = (Notification) o;
+        return Objects.equals(getId(), that.getId()) &&
+                getType() == that.getType() &&
+                Arrays.equals(getObjectIds(), that.getObjectIds());
+    }
+
+    @Override
+    public int hashCode() {
+        int result = Objects.hash(getId(), getType());
+        result = 31 * result + Arrays.hashCode(getObjectIds());
+        return result;
+    }
+
     @Override
     public String toString() {
         return "Notification{" +
@@ -58,6 +107,9 @@ public class Notification {
                 ", user=" + user +
                 ", type=" + type +
                 ", objectIds=" + Arrays.toString(objectIds) +
+                ", date=" + date +
+                ", message='" + message + '\'' +
+                ", seen=" + seen +
                 '}';
     }
 }

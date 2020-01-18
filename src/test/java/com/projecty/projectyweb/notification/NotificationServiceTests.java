@@ -19,14 +19,14 @@ import org.springframework.test.context.junit4.SpringRunner;
 import java.util.Locale;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.*;
 
 @ActiveProfiles("test")
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = ProjectyWebApplication.class)
 public class NotificationServiceTests {
     private static final String PROJECT_NAME = "PROJECT_SAMPLE_NAME";
+
     @Autowired
     private NotificationService notificationService;
     @Autowired
@@ -35,11 +35,13 @@ public class NotificationServiceTests {
     private UserRepository userRepository;
     @MockBean
     private ProjectRepository projectRepository;
+
     private Project project;
+    private User user;
 
     @Before
     public void init() {
-        User user = new User();
+        user = new User();
         user.setUsername("notification-user");
         userRepository.save(user);
         project = new Project();
@@ -72,6 +74,20 @@ public class NotificationServiceTests {
         notification.setObjectIds(new Long[]{project.getId()});
         String excpected = messageSource.getMessage("user_added_to_project", new String[]{project.getName()}, Locale.getDefault());
         assertThat(notificationService.getNotificationString(notification), equalTo(excpected));
+    }
+
+    @Test
+    public void whenSaveNotification_shouldReturnNotification() {
+        Notification notification = notificationService.createNotificationAndSave(
+                user, Notifications.USER_ADDED_TO_PROJECT, new Long[]{project.getId()});
+        assertThat(notificationService.findById(notification.getId()).get(), equalTo(notification));
+    }
+
+    @Test
+    public void whenGetUnreadNotificationCount_shouldReturnUnreadNotificationCount() {
+        notificationService.createNotificationAndSave(user, Notifications.USER_ADDED_TO_PROJECT, new Long[]{project.getId()});
+        long unreadNotificationCount = notificationService.getUnreadNotificationCountForSpecifiedUser(user);
+        assertThat(unreadNotificationCount, greaterThan(0L));
     }
 
 }
