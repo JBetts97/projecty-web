@@ -89,5 +89,4 @@ public class NotificationServiceTests {
         long unreadNotificationCount = notificationService.getUnreadNotificationCountForSpecifiedUser(user);
         assertThat(unreadNotificationCount, greaterThan(0L));
     }
-
 }

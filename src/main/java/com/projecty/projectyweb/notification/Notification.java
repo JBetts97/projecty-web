@@ -5,8 +5,8 @@ import com.projecty.projectyweb.user.User;
 import org.hibernate.annotations.CreationTimestamp;
 
 import javax.persistence.*;
-import java.sql.Date;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.Objects;
 
 @Entity
@@ -24,6 +24,7 @@ public class Notification {
     private Long[] objectIds;
 
     @CreationTimestamp
+    @Temporal(TemporalType.TIMESTAMP)
     private Date date;
 
     @Transient

@@ -50,10 +50,11 @@ public class NotificationControllerTests {
     private UserRepository userRepository;
 
     private Project project;
+    private User user;
 
     @Before
     public void init() {
-        User user = new User();
+        user = new User();
         user.setId(1L);
         user.setUsername("user");
 
@@ -82,7 +83,25 @@ public class NotificationControllerTests {
         Mockito.when(userRepository.findByUsername("user"))
                 .thenReturn(java.util.Optional.of(user));
 
+        // Unread
+        Mockito.when(notificationRepository.findAllByUserAndSeen(user, false))
+                .thenReturn(generateNotifications(123));
+        // Read
+        Mockito.when(notificationRepository.findAllByUserAndSeen(user, true))
+                .thenReturn(generateNotifications(321));
+    }
 
+    private List<Notification> generateNotifications(int n) {
+        List<Notification> notifications = new ArrayList<>();
+        for (int i = 0; i < n; i++) {
+            Notification notification = new NotificationBuilder()
+                    .setType(Notifications.USER_ADDED_TO_PROJECT)
+                    .setObjectIds(new Long[]{project.getId()})
+                    .setUser(user)
+                    .createNotification();
+            notifications.add(notification);
+        }
+        return notifications;
     }
 
     @Test
@@ -101,5 +120,19 @@ public class NotificationControllerTests {
     public void whenGetNotificationCount_shouldReturnNotificationCount() throws Exception {
         mockMvc.perform(get("/notifications/getUnreadNotificationCount"))
                 .andExpect(jsonPath("$").value(567));
+    }
+
+    @Test
+    @WithMockUser
+    public void whenGetUnreadNotifications_shouldReturnUnreadNotifications() throws Exception {
+        mockMvc.perform(get("/notifications?status=UNREAD"))
+                .andExpect(jsonPath("$.length()").value(123));
+    }
+
+    @Test
+    @WithMockUser
+    public void whenGetReadNotifications_shouldReturnReadNotifications() throws Exception {
+        mockMvc.perform(get("/notifications?status=READ"))
+                .andExpect(jsonPath("$.length()").value(321));
     }
 }

@@ -6,7 +6,7 @@ import com.projecty.projectyweb.user.User;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -45,6 +45,7 @@ public class NotificationService {
                 if (optionalProject.isPresent())
                     return new String[]{optionalProject.get().getName()};
                 break;
+            default:
         }
         return null;
     }
@@ -57,6 +58,12 @@ public class NotificationService {
         return String.valueOf(type).toLowerCase();
     }
 
+    public void setAllNotificationsReadForSpecifiedUser(User user) {
+        List<Notification> unseen = notificationRepository.findAllByUserAndSeen(user, false);
+        unseen.forEach(notification -> notification.setSeen(true));
+        unseen.forEach(notificationRepository::save);
+    }
+
     public Optional<Notification> findById(Long id) {
         return notificationRepository.findById(id);
     }
@@ -65,14 +72,35 @@ public class NotificationService {
         return notificationRepository.findAllByUser(user);
     }
 
+    private List<Notification> findAllByUserAndSeen(User user, boolean seen) {
+        return notificationRepository.findAllByUserAndSeen(user, seen);
+    }
+
     public List<Notification> getAllNotificationsForUser(User user) {
         List<Notification> notifications = findAllByUser(user);
-        notifications.forEach(notification -> notification.setMessage(getNotificationString(notification)));
-        notifications.forEach(notification -> System.out.println(Arrays.toString(notification.getObjectIds())));
+        appendNotificationStringMessage(notifications);
         return notifications;
+    }
+
+    public List<Notification> getNotificationWithNotificationStatus(User user, NotificationStatus status) {
+        switch (status) {
+            case UNREAD:
+                List<Notification> notifications = findAllByUserAndSeen(user, false);
+                appendNotificationStringMessage(notifications);
+                return notifications;
+            case READ:
+                List<Notification> notifications1 = findAllByUserAndSeen(user, true);
+                appendNotificationStringMessage(notifications1);
+                return notifications1;
+        }
+        return new ArrayList<>();
     }
 
     public long getUnreadNotificationCountForSpecifiedUser(User user) {
         return notificationRepository.countByUserAndSeen(user, false);
+    }
+
+    public void appendNotificationStringMessage(List<Notification> notifications) {
+        notifications.forEach(notification -> notification.setMessage(getNotificationString(notification)));
     }
 }

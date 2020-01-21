@@ -3,6 +3,7 @@ package com.projecty.projectyweb.notification;
 import com.projecty.projectyweb.user.UserService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -23,8 +24,18 @@ public class NotificationController {
         return notificationService.getAllNotificationsForUser(userService.getCurrentUser());
     }
 
+    @GetMapping(params = "status")
+    public List<Notification> getUnreadOrReadNotifications(@RequestParam("status") NotificationStatus status) {
+        return notificationService.getNotificationWithNotificationStatus(userService.getCurrentUser(), status);
+    }
+
     @GetMapping("getUnreadNotificationCount")
     public long getUnreadNotificationCount() {
         return notificationService.getUnreadNotificationCountForSpecifiedUser(userService.getCurrentUser());
+    }
+
+    @GetMapping("setAllRead")
+    public void readAllNotifications() {
+        notificationService.setAllNotificationsReadForSpecifiedUser(userService.getCurrentUser());
     }
 }
