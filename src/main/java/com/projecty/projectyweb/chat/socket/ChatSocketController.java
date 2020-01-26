@@ -3,7 +3,6 @@ package com.projecty.projectyweb.chat.socket;
 import com.projecty.projectyweb.chat.ChatMessage;
 import com.projecty.projectyweb.chat.ChatService;
 import com.projecty.projectyweb.user.UserNotFoundException;
-import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -27,8 +26,7 @@ public class ChatSocketController {
     @MessageMapping("/secured/room")
     public void sendSpecific(
             @Payload SocketChatMessage msg,
-            Principal user,
-            @Header("simpSessionId") String sessionId) throws Exception {
+            Principal user) throws Exception {
 
         try {
             ChatMessage chatMessage = chatService.saveInDatabase(msg);
@@ -38,7 +36,7 @@ public class ChatSocketController {
                     chatMessage.getText(),
                     chatMessage.getSendDate());
             simpMessagingTemplate.convertAndSendToUser(
-                    msg.getRecipient(), "/secured/user/queue/specific-user", out);
+                    msg.getRecipient(), "/queue/specific-user", out);
         } catch (UserNotFoundException ignored) {
         }
     }

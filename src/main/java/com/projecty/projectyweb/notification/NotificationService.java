@@ -35,7 +35,7 @@ public class NotificationService {
 
     public String getNotificationString(Notification notification) {
         String[] values = createStringArgumentValuesArray(notification.getType(), notification.getObjectIds());
-        return getMessageFromMessageSource(notification.getType(), values);
+        return values != null ? getMessageFromMessageSource(notification.getType(), values) : null;
     }
 
     public String[] createStringArgumentValuesArray(Notifications type, Long[] objectIds) {
@@ -102,5 +102,16 @@ public class NotificationService {
 
     public void appendNotificationStringMessage(List<Notification> notifications) {
         notifications.forEach(notification -> notification.setMessage(getNotificationString(notification)));
+        deleteOrphanNotifications(notifications);
+    }
+
+    public void deleteOrphanNotifications(List<Notification> notifications) {
+        List<Notification> orphans = new ArrayList<>();
+        notifications.forEach(notification -> {
+            if (notification.getMessage() == null)
+                orphans.add(notification);
+        });
+        notifications.removeAll(orphans);
+        orphans.forEach(notificationRepository::delete);
     }
 }

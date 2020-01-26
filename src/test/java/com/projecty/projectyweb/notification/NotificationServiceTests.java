@@ -16,6 +16,8 @@ import org.springframework.context.MessageSource;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -88,5 +90,24 @@ public class NotificationServiceTests {
         notificationService.createNotificationAndSave(user, Notifications.USER_ADDED_TO_PROJECT, new Long[]{project.getId()});
         long unreadNotificationCount = notificationService.getUnreadNotificationCountForSpecifiedUser(user);
         assertThat(unreadNotificationCount, greaterThan(0L));
+    }
+
+    @Test
+    public void whenDeleteOrphans_shouldDeleteOrphanNotificationsFromList() {
+        List<Notification> notifications = new ArrayList<>();
+
+        Notification notification = new Notification();
+        notification.setType(Notifications.USER_ADDED_TO_PROJECT);
+        notification.setObjectIds(new Long[]{project.getId()});
+        notifications.add(notification);
+
+        Notification notification1 = new Notification();
+        notification1.setType(Notifications.USER_ADDED_TO_PROJECT);
+        notification1.setObjectIds(new Long[]{9999L});
+        notifications.add(notification1);
+
+        notificationService.appendNotificationStringMessage(notifications);
+        notificationService.deleteOrphanNotifications(notifications);
+        assertThat(notifications.size(), equalTo(1));
     }
 }

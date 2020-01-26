@@ -1,10 +1,7 @@
 package com.projecty.projectyweb.notification;
 
 import com.projecty.projectyweb.user.UserService;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -34,7 +31,7 @@ public class NotificationController {
         return notificationService.getUnreadNotificationCountForSpecifiedUser(userService.getCurrentUser());
     }
 
-    @GetMapping("setAllRead")
+    @PostMapping("setAllRead")
     public void readAllNotifications() {
         notificationService.setAllNotificationsReadForSpecifiedUser(userService.getCurrentUser());
     }
